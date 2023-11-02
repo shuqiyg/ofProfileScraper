@@ -114,3 +114,24 @@ await crawler.run();
 
 // https://imgur.com/ try scraping videos as well (redgif maybe?)
 // https://apify.com/clockworks/tiktok-scraper
+
+// ****************this is for fansly****************************
+// // general profile content(html)
+// const profile = await page.locator('.content-wrapper').innerHTML();
+// //username
+// const username = await page.locator('.username-wrapper .user-name').textContent();
+// console.log(username);
+// //display name
+// const displayName = await page.locator('.icon-wrapper .display-name').textContent();
+// console.log(displayName);
+// //banner
+// const banner = await page.locator('.image-placeholder-wrapper img').getAttribute('src'); 
+// console.log(banner);
+// const avatar = await page.locator('.avatar .image').getAttribute('src');
+// console.log(avatar);
+// const avatarZoom = await page.locator('.contain-no-grow').getAttribute('src');
+// console.log(avatarZoom);
+// const stats = await page.locator('.profile-stats').innerHTML();
+// const bio = await page.locator('.profile-description-text span').textContent();
+// const location = await page.locator('.location').textContent();
+// const subPlans = await page.locator('app-account-subscription-plans').innerHTML();
