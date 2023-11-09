@@ -19,7 +19,7 @@ const crawler = new PlaywrightCrawler({
 });
 
 // Read the usernames from combined_users.txt
-const usernames = fs.readFileSync('combined_users.txt', 'utf-8').split('\n').map(line => line.trim());
+const usernames = fs.readFileSync('onlyfansbusty_new', 'utf-8').split('\n').map(line => line.trim());
 
 // Create an array of urls by appending each username to 'https://onlyfans.com/'
 const urls = usernames.map(username => `https://onlyfans.com/${username}`);
