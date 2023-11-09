@@ -4,9 +4,16 @@ import fs from 'fs';
 const crawler = new PlaywrightCrawler({
     // Function called for each URL
     async requestHandler({ request, page, enqueueLinks}) {
+        // Check if username element is present on the page
+        const usernameElement = await page.locator('.b-compact-header__wrapper');
+        if (!usernameElement) {
+            console.log('Username element not found on page. Skipping URL:', request.url);
+            return;
+        }
+
         maxRequestsPerCrawl:100;
         //username 
-        const username = await page.locator('.b-compact-header__wrapper').textContent();
+        const username = await usernameElement.textContent();
 
         //account name
         const splits = request.url.split('/');
@@ -41,7 +48,12 @@ const crawler = new PlaywrightCrawler({
         const userBio = await page.locator('.b-user-info__text p').textContent();
 
         //personal link
-        const personalLink = await page.locator('.b-user-info__detail a').getAttribute('href');
+        let personalLink = "";
+        try {
+            personalLink = await page.waitForSelector('.b-user-info__detail a', { timeout: 1000 }).then((el) => el.getAttribute('href'));
+        } catch (error) {
+            console.log("Personal link not found for this URL");
+        }
 
         //general profile content(html)
         const profile = await page.locator('.b-profile__content').innerHTML();
@@ -82,9 +94,14 @@ const crawler = new PlaywrightCrawler({
 
     // scrape 50 pages at a time, need to find out the limits of crawlee, maybe write a script to run multiple crawlers at once
     await crawler.addRequests([
-        'https://onlyfans.com/elaina_stjames',
-        'https://onlyfans.com/loonascandi',
+        'https://onlyfans.com/elle_girl713',
+        // 'https://onlyfans.com/Scared-Abalone-3477',
+        // 'https://onlyfans.com/elaina_stjames',
+        // 'https://onlyfans.com/loonascandi',
         'https://onlyfans.com/laurenelizabeth',
+        // 'https://onlyfans.com/Kinkyffantasy',
+        'https://onlyfans.com/AmateurParents',
+        'https://onlyfans.com/pocketpixxie',
     ]);
 
 //helper 1
