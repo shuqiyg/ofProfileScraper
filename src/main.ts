@@ -12,6 +12,7 @@ const crawler = new PlaywrightCrawler({
         }
 
         maxRequestsPerCrawl:100;
+        this.maxRequestRetries =1;
         //username 
         const username = await usernameElement.textContent();
 
@@ -70,10 +71,9 @@ const crawler = new PlaywrightCrawler({
     //           requestQueue: crawler.requestQueue
     //       });
     //   }
-
-    
+        const dataset = await Dataset.open(accountName)
         // Save data to default dataset
-        await Dataset.pushData({
+        await dataset.pushData({
             onlyFansUrl: request.url,
             accountName,
             userName: username,
@@ -99,9 +99,14 @@ const crawler = new PlaywrightCrawler({
         // 'https://onlyfans.com/elaina_stjames',
         // 'https://onlyfans.com/loonascandi',
         'https://onlyfans.com/laurenelizabeth',
-        // 'https://onlyfans.com/Kinkyffantasy',
+        'https://onlyfans.com/Kinkyffantasy',
         'https://onlyfans.com/AmateurParents',
         'https://onlyfans.com/pocketpixxie',
+        "https://onlyfans.com/mature_kittie",
+        "https://onlyfans.com/kristiandkloe/c1",
+        "https://onlyfans.com/kenandbarbie69",
+        "https://onlyfans.com/es.lain"
+
     ]);
 
 //helper 1
