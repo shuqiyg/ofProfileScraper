@@ -1,5 +1,13 @@
 import { Dataset, PlaywrightCrawler } from 'crawlee';
 import fs from 'fs';
+import fetch from 'node-fetch';
+
+
+async function downloadImage(url: string, filePath: string): Promise<void> {
+    const response = await fetch(url);
+    const buffer = await response.buffer();
+    fs.writeFileSync(filePath, buffer);
+}
 
 const crawler = new PlaywrightCrawler({
     // Function called for each URL
@@ -11,8 +19,8 @@ const crawler = new PlaywrightCrawler({
             return;
         }
 
-        maxRequestsPerCrawl:100;
-        this.maxRequestRetries =1;
+        // maxRequestsPerCrawl:100;
+        // this.maxRequestRetries =3;
         //username 
         const username = await usernameElement.textContent();
 
@@ -30,7 +38,7 @@ const crawler = new PlaywrightCrawler({
             stats[iconName] = countSpan;
             console.log(`Icon name: ${iconName}, count: ${countSpan}`);
         }
-        console.log("****", stats)
+        console.log("**Stats**: ", stats)
         // const userStats = await page.locator('.b-profile__sections').innerText();
 
         const followers = await page.locator('svg[data-icon-name="icon-follow"] use');
@@ -49,7 +57,7 @@ const crawler = new PlaywrightCrawler({
         const userBio = await page.locator('.b-user-info__text p').textContent();
 
         //personal link
-        let personalLink = "";
+        let personalLink = "" || null;
         try {
             personalLink = await page.waitForSelector('.b-user-info__detail a', { timeout: 1000 }).then((el) => el.getAttribute('href'));
         } catch (error) {
@@ -88,26 +96,31 @@ const crawler = new PlaywrightCrawler({
             links: personalLink,
             profileHtml: profile,
         });
+        // downloadImage(profilePic, `storage/datasets/${accountName}/profilePic.jpg`);
+        // downloadImage(profilePicZoom, `storage/datasets/${accountName}/profilePicZoom.jpg`);
+        // downloadImage(banner, `storage/datasets/${accountName}/banner.jpg`);
         
     },
 });
 
+// Read from ofLinks.txt file, extract all the strings separated by newline and create an array using those strings
+const links = fs.readFileSync('ofLinks copy.txt', 'utf-8').split('\n').filter(Boolean);
+console.log(links);
     // scrape 50 pages at a time, need to find out the limits of crawlee, maybe write a script to run multiple crawlers at once
-    await crawler.addRequests([
-        'https://onlyfans.com/elle_girl713',
-        // 'https://onlyfans.com/Scared-Abalone-3477',
-        // 'https://onlyfans.com/elaina_stjames',
-        // 'https://onlyfans.com/loonascandi',
-        'https://onlyfans.com/laurenelizabeth',
-        'https://onlyfans.com/Kinkyffantasy',
-        'https://onlyfans.com/AmateurParents',
-        'https://onlyfans.com/pocketpixxie',
-        "https://onlyfans.com/mature_kittie",
-        "https://onlyfans.com/kristiandkloe/c1",
-        "https://onlyfans.com/kenandbarbie69",
-        "https://onlyfans.com/es.lain"
+await crawler.addRequests(links);
+            // 'https://onlyfans.com/elle_girl713',
+        // // 'https://onlyfans.com/Scared-Abalone-3477',
+        // // 'https://onlyfans.com/elaina_stjames',
+        // // 'https://onlyfans.com/loonascandi',
+        // 'https://onlyfans.com/laurenelizabeth',
+        // 'https://onlyfans.com/Kinkyffantasy',
+        // 'https://onlyfans.com/AmateurParents',
+        // 'https://onlyfans.com/pocketpixxie',
+        // "https://onlyfans.com/mature_kittie",
+        // "https://onlyfans.com/kristiandkloe/c1",
+        // "https://onlyfans.com/kenandbarbie69",
+        // "https://onlyfans.com/es.lain"
 
-    ]);
 
 //helper 1
 function convertThumbnailToPublic(thumbnailUrl: string): string {
