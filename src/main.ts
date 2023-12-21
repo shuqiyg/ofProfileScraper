@@ -11,6 +11,7 @@ async function downloadImage(url: string, filePath: string): Promise<void> {
 
 const crawler = new PlaywrightCrawler({
     // Function called for each URL
+    navigationTimeoutSecs:15,
     async requestHandler({ request, page, enqueueLinks}) {
         // Check if username element is present on the page
         const usernameElement = await page.locator('.b-compact-header__wrapper');
@@ -18,33 +19,64 @@ const crawler = new PlaywrightCrawler({
             console.log('Username element not found on page. Skipping URL:', request.url);
             return;
         }
+        //@username
+        // const uname = await page.locator('.g-user-username').first();
+        // const unameText = await uname.textContent();
 
-        // maxRequestsPerCrawl:100;
-        // this.maxRequestRetries =3;
+        maxRequestsPerCrawl:100;
+        this.maxRequestRetries =1;
         //username 
         const username = await usernameElement.textContent();
 
         //account name
         const splits = request.url.split('/');
         const accountName = splits[splits.length - 1];
+        // const accountName = unameText.substring(1);
 
         // stats of images, videos, likes, views, and streams
-        const lis = await page.$$('.b-profile__sections li');
+        let lis = []
+        try {
+            lis = await page.$$('.b-profile__sections li');
+        } catch (error) {
+            console.error('Error occurred while getting lis:', error);
+            lis = [];
+        }
         const stats ={}
-        for (let i = 0; i < lis.length; i++) {
-            const li = lis[i];
-            const iconName = await li.$eval('svg', (svg) => svg.getAttribute('data-icon-name'));
-            const countSpan = await li.$eval('span', (span) => span.textContent);
-            stats[iconName] = countSpan;
-            console.log(`Icon name: ${iconName}, count: ${countSpan}`);
+        if(lis.length !== 0){
+            for (let i = 0; i < lis.length; i++) {
+                const li = lis[i];
+                // const iconName = await li.$eval('svg', (svg) => svg.getAttribute('data-icon-name'));
+                let iconName = '';
+                try {
+                    iconName = await li.$eval('svg', (svg) => svg.getAttribute('data-icon-name'));
+                } catch (error) {
+                    console.error('SVG element not found:', error);
+                    iconName = '';
+                }
+                const countSpan = await li.$eval('span', (span) => span.textContent);
+                stats[iconName] = countSpan;
+                console.log(`Icon name: ${iconName}, count: ${countSpan}`);
+            }
         }
         console.log("**Stats**: ", stats)
         // const userStats = await page.locator('.b-profile__sections').innerText();
 
-        const followers = await page.locator('svg[data-icon-name="icon-follow"] use');
+        let followers = {}
+        try{
+            followers = await page.locator('svg[data-icon-name="icon-follow"] use');
+        }catch(error){
+            console.error('Followers SVG element not found:', error);
+            followers = {};
+        }
 
-        //need to get the price of subscription, either free or $XX.XX
-        const subsFee = await page.locator('.b-offer-join').first().textContent();
+        //get the subscription fee
+        let subsFee = "" || null;
+        try {
+            subsFee = await page.locator('.b-offer-join').first().textContent();
+        } catch (error) {
+            console.error('Error occurred while getting subscription fee:', error);
+            subsFee = "Free";
+        }
 
         //get the banner image
         const banner = await page.locator('.b-profile__header img').getAttribute('src');
@@ -53,8 +85,15 @@ const crawler = new PlaywrightCrawler({
         const profilePic = await page.locator('.b-profile__user .g-avatar__img-wrapper img').getAttribute('src');
         //change the url to the full size image
         const profilePicZoom = convertThumbnailToPublic(profilePic as string);
+
         //get the user info (bio)
-        const userBio = await page.locator('.b-user-info__text p').textContent();
+        let userBio = "" || null;
+        try{
+            userBio = await page.locator('.b-user-info__text p').textContent();
+        }catch(error){
+            console.log("User bio not found for this URL");
+            // userBio = "";
+        }
 
         //personal link
         let personalLink = "" || null;
@@ -96,30 +135,22 @@ const crawler = new PlaywrightCrawler({
             links: personalLink,
             profileHtml: profile,
         });
-        // downloadImage(profilePic, `storage/datasets/${accountName}/profilePic.jpg`);
-        // downloadImage(profilePicZoom, `storage/datasets/${accountName}/profilePicZoom.jpg`);
-        // downloadImage(banner, `storage/datasets/${accountName}/banner.jpg`);
+        downloadImage(profilePic, `storage/datasets/${accountName}/profilePic.jpg`);
+        downloadImage(profilePicZoom, `storage/datasets/${accountName}/profilePicZoom.jpg`);
+        downloadImage(banner, `storage/datasets/${accountName}/banner.jpg`);
         
     },
 });
 
 // Read from ofLinks.txt file, extract all the strings separated by newline and create an array using those strings
-const links = fs.readFileSync('ofLinks copy.txt', 'utf-8').split('\n').filter(Boolean);
-console.log(links);
-    // scrape 50 pages at a time, need to find out the limits of crawlee, maybe write a script to run multiple crawlers at once
+const links = fs.readFileSync('onlyFinders.txt', 'utf-8')
+                .split('\n')
+                .map(link => link.trim().toLowerCase())
+                .filter(Boolean)
 await crawler.addRequests(links);
-            // 'https://onlyfans.com/elle_girl713',
-        // // 'https://onlyfans.com/Scared-Abalone-3477',
-        // // 'https://onlyfans.com/elaina_stjames',
-        // // 'https://onlyfans.com/loonascandi',
-        // 'https://onlyfans.com/laurenelizabeth',
-        // 'https://onlyfans.com/Kinkyffantasy',
-        // 'https://onlyfans.com/AmateurParents',
-        // 'https://onlyfans.com/pocketpixxie',
-        // "https://onlyfans.com/mature_kittie",
-        // "https://onlyfans.com/kristiandkloe/c1",
-        // "https://onlyfans.com/kenandbarbie69",
-        // "https://onlyfans.com/es.lain"
+
+// Run the crawler
+await crawler.run();
 
 
 //helper 1
@@ -142,10 +173,6 @@ function findPriceOrFree(input: string): string {
     }
     return 'Not Found';
   }
-  
-// Run the crawler
-await crawler.run();
-
 
 // https://imgur.com/ try scraping videos as well (redgif maybe?)
 // https://apify.com/clockworks/tiktok-scraper
