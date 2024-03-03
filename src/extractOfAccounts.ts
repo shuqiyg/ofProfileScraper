@@ -1,8 +1,8 @@
 import fs from 'fs';
 
 const datasetFolder = "storage/datasets";
-const accountsFile = "OnlyFinders.txt";
-
+const accountsFile = "ofLinks.txt";
+ 
 // Read the folder names under storage/datasets
 const datasetFolders = fs.readdirSync(datasetFolder).map(folder => folder.toLowerCase());
 

@@ -9,29 +9,27 @@ async function downloadImage(url: string, filePath: string): Promise<void> {
     fs.writeFileSync(filePath, buffer);
 }
 
+const filePath = 'urlToDelete.txt';
+
 const crawler = new PlaywrightCrawler({
     // Function called for each URL
-    navigationTimeoutSecs:15,
+    navigationTimeoutSecs:3,
     async requestHandler({ request, page, enqueueLinks}) {
+        maxRequestsPerCrawl:100;
+        this.maxRequestRetries = 1;
         // Check if username element is present on the page
         const usernameElement = await page.locator('.b-compact-header__wrapper');
         if (!usernameElement) {
             console.log('Username element not found on page. Skipping URL:', request.url);
             return;
         }
-        //@username
-        // const uname = await page.locator('.g-user-username').first();
-        // const unameText = await uname.textContent();
 
-        maxRequestsPerCrawl:100;
-        this.maxRequestRetries =1;
         //username 
         const username = await usernameElement.textContent();
 
         //account name
         const splits = request.url.split('/');
         const accountName = splits[splits.length - 1];
-        // const accountName = unameText.substring(1);
 
         // stats of images, videos, likes, views, and streams
         let lis = []
@@ -45,7 +43,6 @@ const crawler = new PlaywrightCrawler({
         if(lis.length !== 0){
             for (let i = 0; i < lis.length; i++) {
                 const li = lis[i];
-                // const iconName = await li.$eval('svg', (svg) => svg.getAttribute('data-icon-name'));
                 let iconName = '';
                 try {
                     iconName = await li.$eval('svg', (svg) => svg.getAttribute('data-icon-name'));
@@ -55,12 +52,11 @@ const crawler = new PlaywrightCrawler({
                 }
                 const countSpan = await li.$eval('span', (span) => span.textContent);
                 stats[iconName] = countSpan;
-                console.log(`Icon name: ${iconName}, count: ${countSpan}`);
+                // console.log(`Icon name: ${iconName}, count: ${countSpan}`);
             }
         }
         console.log("**Stats**: ", stats)
-        // const userStats = await page.locator('.b-profile__sections').innerText();
-
+        
         let followers = {}
         try{
             followers = await page.locator('svg[data-icon-name="icon-follow"] use');
@@ -82,9 +78,19 @@ const crawler = new PlaywrightCrawler({
         const banner = await page.locator('.b-profile__header img').getAttribute('src');
 
         //get the profile pic
-        const profilePic = await page.locator('.b-profile__user .g-avatar__img-wrapper img').getAttribute('src');
+        let profilePic = "" || null;
+        let profilePicZoom = "" || null;
+        try {
+            profilePic = await page.locator('.b-profile__user .g-avatar__img-wrapper img').getAttribute('src');
+            profilePicZoom = convertThumbnailToPublic(profilePic as string);
+        } catch (error) {
+            console.error('Error occurred while getting profile picture (Banner Replace Instead):', error);
+            profilePic = banner;
+            profilePicZoom = banner;
+        }
+        
         //change the url to the full size image
-        const profilePicZoom = convertThumbnailToPublic(profilePic as string);
+        // const profilePicZoom = convertThumbnailToPublic(profilePic as string);
 
         //get the user info (bio)
         let userBio = "" || null;
@@ -92,7 +98,6 @@ const crawler = new PlaywrightCrawler({
             userBio = await page.locator('.b-user-info__text p').textContent();
         }catch(error){
             console.log("User bio not found for this URL");
-            // userBio = "";
         }
 
         //personal link
@@ -106,18 +111,6 @@ const crawler = new PlaywrightCrawler({
         //general profile content(html)
         const profile = await page.locator('.b-profile__content').innerHTML();
 
-        //search for other social media links (tiktok, intagram, twitter, facebook, fansly, etc)
-    //     console.log(request.url);
-    //     await page.waitForSelector('.swiper-wrapper a');
-    //     const links = await page.$$eval('.swiper-wrapper a', links => links.map(link => link.getAttribute('href')));
-    //     if (links.length > 0) {
-    //       await enqueueLinks({
-    //           urls: links.filter(link => link !== null) as string[],
-    //           selector: 'a',
-    //           label: 'page',
-    //           requestQueue: crawler.requestQueue
-    //       });
-    //   }
         const dataset = await Dataset.open(accountName)
         // Save data to default dataset
         await dataset.pushData({
@@ -135,15 +128,15 @@ const crawler = new PlaywrightCrawler({
             links: personalLink,
             profileHtml: profile,
         });
-        downloadImage(profilePic, `storage/datasets/${accountName}/profilePic.jpg`);
-        downloadImage(profilePicZoom, `storage/datasets/${accountName}/profilePicZoom.jpg`);
-        downloadImage(banner, `storage/datasets/${accountName}/banner.jpg`);
+        downloadImage(profilePic, `storage/datasets/${accountName}/${accountName}_profilePic.jpg`);
+        downloadImage(profilePicZoom, `storage/datasets/${accountName}/${accountName}_profilePicZoom.jpg`);
+        downloadImage(banner, `storage/datasets/${accountName}/${accountName}_banner.jpg`);
         
     },
 });
 
 // Read from ofLinks.txt file, extract all the strings separated by newline and create an array using those strings
-const links = fs.readFileSync('onlyFinders.txt', 'utf-8')
+const links = fs.readFileSync('ofLinks.txt', 'utf-8')
                 .split('\n')
                 .map(link => link.trim().toLowerCase())
                 .filter(Boolean)
