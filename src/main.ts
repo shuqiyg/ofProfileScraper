@@ -24,7 +24,7 @@ const crawler = new PlaywrightCrawler({
             return;
         }
 
-        //username 
+        //username im
         const username = await usernameElement.textContent();
 
         //account name
@@ -57,13 +57,6 @@ const crawler = new PlaywrightCrawler({
         }
         console.log("**Stats**: ", stats)
         
-        let followers = {}
-        try{
-            followers = await page.locator('svg[data-icon-name="icon-follow"] use');
-        }catch(error){
-            console.error('Followers SVG element not found:', error);
-            followers = {};
-        }
 
         //get the subscription fee
         let subsFee = "" || null;
@@ -105,11 +98,17 @@ const crawler = new PlaywrightCrawler({
         try {
             personalLink = await page.waitForSelector('.b-user-info__detail a', { timeout: 1000 }).then((el) => el.getAttribute('href'));
         } catch (error) {
-            console.log("Personal link not found for this URL");
+            console.log("No Personal links Found.");
         }
 
-        //general profile content(html)
-        const profile = await page.locator('.b-profile__content').innerHTML();
+        // social links
+        let socialLinks = [] as string[];
+        try {
+            socialLinks = await page.$$eval('.m-single-current > div > a', (anchors) => anchors.map((anchor) => anchor.getAttribute('href')));
+            console.log(socialLinks);
+        } catch (error) {
+            console.error('No Social links Found.');
+        }
 
         const dataset = await Dataset.open(accountName)
         // Save data to default dataset
@@ -119,14 +118,13 @@ const crawler = new PlaywrightCrawler({
             userName: username,
             subsFee: findPriceOrFree(subsFee??"Free"),
             stats,
-            followers: followers,
             avatar: profilePic,
             avatarZoom: profilePicZoom,
             bannerImg: banner,
             userBio: userBio,
             location: "",
             links: personalLink,
-            profileHtml: profile,
+            socialLinks,
         });
         downloadImage(profilePic, `storage/datasets/${accountName}/${accountName}_profilePic.jpg`);
         downloadImage(profilePicZoom, `storage/datasets/${accountName}/${accountName}_profilePicZoom.jpg`);
