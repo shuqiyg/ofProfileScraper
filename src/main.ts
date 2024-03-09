@@ -18,7 +18,7 @@ const crawler = new PlaywrightCrawler({
         maxRequestsPerCrawl:100;
         this.maxRequestRetries = 1;
         // Check if username element is present on the page
-        const usernameElement = await page.locator('.b-compact-header__wrapper');
+        const usernameElement = await page.locator('.g-user-name').first();
         if (!usernameElement) {
             console.log('Username element not found on page. Skipping URL:', request.url);
             return;
@@ -32,31 +32,18 @@ const crawler = new PlaywrightCrawler({
         const accountName = splits[splits.length - 1];
 
         // stats of images, videos, likes, views, and streams
-        let lis = []
-        try {
-            lis = await page.$$('.b-profile__sections li');
-        } catch (error) {
-            console.error('Error occurred while getting lis:', error);
-            lis = [];
-        }
-        const stats ={}
-        if(lis.length !== 0){
-            for (let i = 0; i < lis.length; i++) {
-                const li = lis[i];
-                let iconName = '';
-                try {
-                    iconName = await li.$eval('svg', (svg) => svg.getAttribute('data-icon-name'));
-                } catch (error) {
-                    console.error('SVG element not found:', error);
-                    iconName = '';
-                }
-                const countSpan = await li.$eval('span', (span) => span.textContent);
-                stats[iconName] = countSpan;
-                // console.log(`Icon name: ${iconName}, count: ${countSpan}`);
-            }
-        }
-        console.log("**Stats**: ", stats)
-        
+        let stats = {} 
+        const sectionLinks = await page.$$eval('.b-profile__sections__link', (links) => links.map((link) => {
+                const svg = link.querySelector('svg')?.getAttribute('data-icon-name');
+                const span = link.querySelector('span')?.innerText;
+                return { svg, span };
+        }));
+ 
+        console.log("**Stats**: ", sectionLinks)
+        stats = sectionLinks.reduce((acc, { svg, span }) => {
+            acc[svg] = span;
+            return acc;
+        }, {});
 
         //get the subscription fee
         let subsFee = "" || null;
@@ -97,6 +84,9 @@ const crawler = new PlaywrightCrawler({
         let personalLink = "" || null;
         try {
             personalLink = await page.waitForSelector('.b-user-info__detail a', { timeout: 1000 }).then((el) => el.getAttribute('href'));
+            // if(personalLink){
+            personalLink.replace("/away?url=", "")
+            // }
         } catch (error) {
             console.log("No Personal links Found.");
         }
@@ -122,8 +112,8 @@ const crawler = new PlaywrightCrawler({
             avatarZoom: profilePicZoom,
             bannerImg: banner,
             userBio: userBio,
+            personalLink: personalLink,
             location: "",
-            links: personalLink,
             socialLinks,
         });
         downloadImage(profilePic, `storage/datasets/${accountName}/${accountName}_profilePic.jpg`);

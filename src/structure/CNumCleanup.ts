@@ -2,22 +2,37 @@ import fs from 'fs';
 import path from 'path';
 const baseFolderPath = 'storage/datasets';
 let counts = 0;
+
 fs.readdirSync(baseFolderPath, { withFileTypes: true })
     .filter((dirent) => dirent.isDirectory())
     .forEach((dirent) => {
         const folderPath = path.join(baseFolderPath, dirent.name);
         fs.readdirSync(folderPath)
-            .filter((fileName) => fileName.endsWith('.json'))
+            .filter((fileName) => fileName.endsWith('.json') && fileName !== '000000001.json')
             .forEach((fileName) => {
+                console.log(fileName);
                 const filePath = path.join(folderPath, fileName);
-                const fileContent = fs.readFileSync(filePath, 'utf-8');
-                const json = JSON.parse(fileContent);
-                delete json.followers;
-                delete json.profileHtml;
-                fs.writeFileSync(filePath, JSON.stringify(json, null, 2));
-                console.log(++counts);
+                fs.unlinkSync(filePath);
             });
     });
+
+
+// fs.readdirSync(baseFolderPath, { withFileTypes: true })
+//     .filter((dirent) => dirent.isDirectory())
+//     .forEach((dirent) => {
+//         const folderPath = path.join(baseFolderPath, dirent.name);
+//         fs.readdirSync(folderPath)
+//             .filter((fileName) => fileName.endsWith('.json'))
+//             .forEach((fileName) => {
+//                 const filePath = path.join(folderPath, fileName);
+//                 const fileContent = fs.readFileSync(filePath, 'utf-8');
+//                 const json = JSON.parse(fileContent);
+//                 delete json.followers;
+//                 delete json.profileHtml;
+//                 fs.writeFileSync(filePath, JSON.stringify(json, null, 2));
+//                 console.log(++counts);
+//             });
+//     });
 
 
 // ********** remove folder has no json
@@ -31,6 +46,7 @@ fs.readdirSync(baseFolderPath, { withFileTypes: true })
 //         if (jsonFiles.length === 0) {
 //             console.log(folderPath);
 //             fs.rmdirSync(folderPath, { recursive: true });
+//             console.log(++counts);
 //         }
 //     });
 
