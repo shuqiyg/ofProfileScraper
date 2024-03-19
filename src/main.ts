@@ -9,7 +9,6 @@ async function downloadImage(url: string, filePath: string): Promise<void> {
     fs.writeFileSync(filePath, buffer);
 }
 
-const filePath = 'urlToDelete.txt';
 
 const crawler = new PlaywrightCrawler({
     // Function called for each URL
@@ -111,13 +110,17 @@ const crawler = new PlaywrightCrawler({
             avatar: profilePic,
             avatarZoom: profilePicZoom,
             bannerImg: banner,
-            avatarCDN: "",
-            bannerCDN: "",
-            otherImages: [],
             userBio: userBio,
             personalLink: personalLink,
             location: "",
             socialLinks,
+            avatarCDN: "",
+            bannerCDN: "",
+            otherImages: [],
+            active: 1,
+            membership: "free",
+            tags: [],
+            likesCount: 0,
         });
         downloadImage(profilePic, `storage/datasets/${accountName}/${accountName}_profilePic.jpg`);
         downloadImage(profilePicZoom, `storage/datasets/${accountName}/${accountName}_profilePicZoom.jpg`);

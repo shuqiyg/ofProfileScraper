@@ -19,7 +19,7 @@ fs.readdir(directoryPath, (err, folders) => {
             }
 
             files.forEach((file) => {
-                if (file.toLowerCase().endsWith('.jpg')) {
+                if (file.toLowerCase().endsWith('.jpg') || file.endsWith('profilePic.webp')) {
                     const filePath = path.join(folderPath, file);
 
                     fs.unlink(filePath, (err) => {

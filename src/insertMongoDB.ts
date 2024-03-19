@@ -20,33 +20,52 @@ async function run() {
 
         const documents = [];
 
-        const foldersPath = "storage/test"
+        const foldersPath = "storage/datasets"
         const folders = fs.readdirSync(foldersPath);
         let count = 0;
         for (const folder of folders) {
             const filePath = path.join(foldersPath, folder, '000000001.json');
-            const fileData = fs.readFileSync(filePath, 'utf8');
-            const jsonData = JSON.parse(fileData);
+            const fileExists = fs.existsSync(filePath);
+            if (fileExists) {
+                const fileData = fs.readFileSync(filePath, 'utf8');
+                const jsonData = JSON.parse(fileData);
 
-            if (jsonData.stats && Object.keys(jsonData.stats).length !== 0) {
-                if (jsonData.stats["icon-like"]) {
-                    const valueString = jsonData.stats["icon-like"];
-                    if (valueString.includes("K")) {
-                        const valueWithoutK = valueString.replace("K", "");
-                        const valueNumber = parseFloat(valueWithoutK);
-                        if (valueNumber >= 15) {
-                            console.log(++count);
-                            console.log(jsonData.stats)
-                            // documents.push(jsonData);
+                if (jsonData.stats && Object.keys(jsonData.stats).length !== 0) {
+                    if (jsonData.stats["icon-like"]) {
+                        const valueString = jsonData.stats["icon-like"];
+                        if (valueString.includes("K")) {
+                            const valueWithoutK = valueString.replace("K", "");
+                            const valueNumber = parseFloat(valueWithoutK);
+                            if (valueNumber >= 15) {
+                                const accountName = jsonData.accountName;
+                                const existingDocument = await collection.findOne({ accountName });
+                                if (!existingDocument) {
+                                    documents.push(jsonData);
+                                    console.log(++count);
+                                    console.log(jsonData.stats);
+
+                                }
+                            }
+                        }
+                        if (valueString.includes("M")) {
+                            const accountName = jsonData.accountName;
+                            const existingDocument = await collection.findOne({ accountName });
+                            if (!existingDocument) {
+                                documents.push(jsonData);
+                                console.log(++count);
+                                console.log(jsonData.stats);                                
+                            }
                         }
                     }
                 }
             }
-            // documents.push(jsonData);
         }
-
-        // const result = await collection.insertMany(documents);
-        // console.log(`Documents inserted with the _ids: ${result.insertedIds}`);
+        if(documents.length !== 0) {
+            const result = await collection.insertMany(documents);
+            console.log(`Documents inserted with the _ids: ${result.insertedIds}`);
+        }else{
+            console.log("No documents to insert");
+        }
     } finally {
         await client.close();
     }

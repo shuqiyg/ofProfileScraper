@@ -29,7 +29,6 @@ folders.forEach((folder) => {
                             // fs.unlinkSync(filePath);
                             fs.writeFileSync(resizedFilePath, data);
                             console.log(`Resized ${file} to under 20KB and transformed to webp format`);
-
                         }
                     });
             // }

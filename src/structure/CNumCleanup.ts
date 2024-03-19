@@ -10,9 +10,9 @@ fs.readdirSync(baseFolderPath, { withFileTypes: true })
         fs.readdirSync(folderPath)
             .filter((fileName) => fileName.endsWith('.json') && fileName !== '000000001.json')
             .forEach((fileName) => {
-                console.log(fileName);
-                const filePath = path.join(folderPath, fileName);
-                fs.unlinkSync(filePath);
+                console.log(dirent);
+                // const filePath = path.join(folderPath, fileName);
+                // fs.unlinkSync(filePath);
             });
     });
 

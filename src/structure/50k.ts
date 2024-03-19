@@ -2,39 +2,31 @@ import fs from 'fs';
 import path from 'path';
 
 const folderPath = 'storage/datasets';
+const files = fs.readdirSync(folderPath);
 
-fs.readdir(folderPath, (err, folders) => {
-    if (err) {
-        console.error('Error reading folders:', err);
-        return;
+files.forEach((file) => {
+    const filePath = path.join(folderPath, file);
+    const stats = fs.statSync(filePath);
+
+    if (stats.isDirectory()) {
+        const jsonFilePath = path.join(filePath, '000000001.json');
+
+        try {
+            fs.accessSync(jsonFilePath, fs.constants.F_OK);
+            console.log(`********File ${jsonFilePath} exists.`);
+
+            const data = fs.readFileSync(jsonFilePath, 'utf8');
+            const json = JSON.parse(data);
+            json.active = 'y';
+
+            fs.writeFileSync(jsonFilePath, JSON.stringify(json), 'utf8');
+            console.log(`Added "active" key to ${jsonFilePath}`);
+        } catch (err) {
+            if (err.code === 'ENOENT') {
+                console.log(`File ${jsonFilePath} does not exist.`);
+            } else {
+                console.error('Error accessing file:', err);
+            }
+        }
     }
-
-    folders.forEach((folder) => {
-        const folderFullPath = path.join(folderPath, folder);
-
-        fs.readdir(folderFullPath, (err, files) => {
-            if (err) {
-                console.error(`Error reading files in folder ${folder}:`, err);
-                return;
-            }
-
-            const allJpgFilesAre50KB = files.filter((file) => path.extname(file) === '.jpg').map((file) => {
-                const fileFullPath = path.join(folderFullPath, file);
-                const stats = fs.statSync(fileFullPath);
-                // console.log(`File: ${file}, Size: ${stats.size}`);
-                return stats.size === 51280;
-            }).every((size) => size);
-
-            if (allJpgFilesAre50KB) {
-                console.log(folder)
-                fs.rmdir(folderFullPath, { recursive: true }, (err) => {
-                    if (err) {
-                        console.error(`Error removing folder ${folder}:`, err);
-                    } else {
-                        console.log(`Folder ${folder} removed successfully.`);
-                    }
-                });
-            }
-        });
-    });
 });
