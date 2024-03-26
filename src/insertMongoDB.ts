@@ -10,6 +10,11 @@ const client = new MongoClient(uri);
 let avatarSlug = ""
 let bannerSlug = ""
 let avatarZoomSlug = ""
+const mongoMasterListPath = "MongoMasterList.txt";
+const mongoMasterListData = fs.readFileSync(mongoMasterListPath, 'utf8');
+const mongoMasterListArray = mongoMasterListData.split('\n');
+console.log(mongoMasterListArray);
+
 
 async function run() {
     try {
@@ -36,24 +41,26 @@ async function run() {
                         if (valueString.includes("K")) {
                             const valueWithoutK = valueString.replace("K", "");
                             const valueNumber = parseFloat(valueWithoutK);
-                            if (valueNumber >= 15) {
+                            if (valueNumber >= 25) {
                                 const accountName = jsonData.accountName;
+                                 //check if accountName already exists
                                 const existingDocument = await collection.findOne({ accountName });
                                 if (!existingDocument) {
                                     documents.push(jsonData);
                                     console.log(++count);
-                                    console.log(jsonData.stats);
+                                    console.log(accountName, "---" ,jsonData.stats);
 
                                 }
                             }
                         }
                         if (valueString.includes("M")) {
                             const accountName = jsonData.accountName;
+                            //check if accountName already exists
                             const existingDocument = await collection.findOne({ accountName });
                             if (!existingDocument) {
                                 documents.push(jsonData);
                                 console.log(++count);
-                                console.log(jsonData.stats);                                
+                                console.log(accountName, "---" ,jsonData.stats);                                
                             }
                         }
                     }
@@ -72,3 +79,18 @@ async function run() {
 }
 
 run().catch(console.dir);
+
+//total documents in mongo: 24572
+
+
+// *************** get all userAccounts ******************
+// async function appendAccountNamesToFile(collection) {
+//     const cursor = collection.find({}, { projection: { accountName: 1, _id: 0 } });
+//     const accountNames = await cursor.toArray();
+//     const accountNamesString = accountNames.map((doc) => doc.accountName).join('\n');
+
+//     fs.appendFileSync('MongoMasterList.txt', accountNamesString);
+// }
+
+// // Call the function after connecting to the database and before closing the connection
+// await appendAccountNamesToFile(collection);

@@ -1,32 +1,45 @@
-import fs from 'fs';
+import { appendFileSync } from 'fs';
+import { MongoClient } from 'mongodb';
 import path from 'path';
+import fs from 'fs';
 
-const folderPath = 'storage/datasets';
-const files = fs.readdirSync(folderPath);
+let avatarSlug = ""
+let bannerSlug = ""
+let avatarZoomSlug = ""
 
-files.forEach((file) => {
-    const filePath = path.join(folderPath, file);
-    const stats = fs.statSync(filePath);
+async function run() {
 
-    if (stats.isDirectory()) {
-        const jsonFilePath = path.join(filePath, '000000001.json');
+        const documents = [];
 
-        try {
-            fs.accessSync(jsonFilePath, fs.constants.F_OK);
-            console.log(`********File ${jsonFilePath} exists.`);
+        const foldersPath = "storage/datasets"
+        const folders = fs.readdirSync(foldersPath);
+        let count = 0;
+        for (const folder of folders) {
+            const filePath = path.join(foldersPath, folder, '000000001.json');
+            const fileExists = fs.existsSync(filePath);
+            if (fileExists) {
+                const fileData = fs.readFileSync(filePath, 'utf8');
+                const jsonData = JSON.parse(fileData);
 
-            const data = fs.readFileSync(jsonFilePath, 'utf8');
-            const json = JSON.parse(data);
-            json.active = 'y';
-
-            fs.writeFileSync(jsonFilePath, JSON.stringify(json), 'utf8');
-            console.log(`Added "active" key to ${jsonFilePath}`);
-        } catch (err) {
-            if (err.code === 'ENOENT') {
-                console.log(`File ${jsonFilePath} does not exist.`);
-            } else {
-                console.error('Error accessing file:', err);
+                if (jsonData.stats && Object.keys(jsonData.stats).length !== 0) {
+                    if (jsonData.stats["icon-like"]) {
+                        const valueString = jsonData.stats["icon-like"];
+                        if (valueString.includes("K")) {
+                            const valueWithoutK = valueString.replace("K", "");
+                            const valueNumber = parseFloat(valueWithoutK);
+                            if (valueNumber >= 25) {
+                                const accountName = jsonData.accountName;
+                                appendFileSync("over25K.txt", accountName + '\n');
+                            }
+                        }
+                        if (valueString.includes("M")) {
+                            const accountName = jsonData.accountName;
+                            appendFileSync("over25K.txt", accountName + '\n');                        
+                            }
+                        }
+                    }
+                }
             }
-        }
-    }
-});
+}
+
+run().catch(console.dir);

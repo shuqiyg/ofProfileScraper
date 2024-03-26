@@ -20,9 +20,14 @@ fs.readdir(folderPath, async (err, files) => {
                 const data = await fs.promises.readFile(jsonFilePath, 'utf8');
                 const jsonData = JSON.parse(data);
 
-                if (jsonData.personalLink && jsonData.personalLink !== "") {
-                    jsonData.personalLink = jsonData.personalLink.replace("/away?url=", "");
-                } 
+                // Update jsonData with a new key "membership" and set the value to "none"
+                jsonData.membership = "none";
+                
+                // *****remove "/away?url=" from personalLink ******//
+                // if (jsonData.personalLink && jsonData.personalLink !== "") {
+                //     jsonData.personalLink = jsonData.personalLink.replace("/away?url=", "");
+                // } 
+
                 const updatedData = JSON.stringify(jsonData, null, 2);
 
                 await fs.promises.writeFile(jsonFilePath, updatedData, 'utf8');

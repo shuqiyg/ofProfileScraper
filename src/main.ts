@@ -12,10 +12,10 @@ async function downloadImage(url: string, filePath: string): Promise<void> {
 
 const crawler = new PlaywrightCrawler({
     // Function called for each URL
-    navigationTimeoutSecs:3,
+    navigationTimeoutSecs:5,
     async requestHandler({ request, page, enqueueLinks}) {
         maxRequestsPerCrawl:100;
-        this.maxRequestRetries = 1;
+        this.maxRequestRetries = 2;
         // Check if username element is present on the page
         const usernameElement = await page.locator('.g-user-name').first();
         if (!usernameElement) {
