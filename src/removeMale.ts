@@ -13,7 +13,7 @@ function removeFolderRecursively(folderPath: string): void {
         const isDirectory = fs.lstatSync(filePath).isDirectory();
 
         if (isDirectory) {
-            if (file.includes('tom')) {
+            if (file.includes('boy')) {
                 removeFolderRecursively(filePath);
             }
         } else {
@@ -24,7 +24,7 @@ function removeFolderRecursively(folderPath: string): void {
     fs.rmdirSync(folderPath);
 }
 
-const rootFolderPath = 'D:/Fandorra Backup/OF_PROFILES_DATASETS_BK';
+const rootFolderPath = 'storage/datasets';
 
 if (fs.existsSync(rootFolderPath)) {
     const folders = fs.readdirSync(rootFolderPath);
@@ -33,7 +33,8 @@ if (fs.existsSync(rootFolderPath)) {
         const folderPath = path.join(rootFolderPath, folder);
         const isDirectory = fs.lstatSync(folderPath).isDirectory();
 
-        if (isDirectory && folder.includes('tom')) {
+        if (isDirectory && folder.includes('boy')) {
+            console.log(folderPath);
             removeFolderRecursively(folderPath);
         }
     });

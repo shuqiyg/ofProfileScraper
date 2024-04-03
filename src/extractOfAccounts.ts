@@ -1,6 +1,6 @@
 import fs from 'fs';
 
-const datasetFolder = "D:/Fandorra Backup/20240313";
+const datasetFolder = "storage/datasets";
 const accountsFile = "ofLinks.txt";
  
 // Read the folder names under storage/datasets
