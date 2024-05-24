@@ -1,7 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 
-const folderPath = 'storage/test';
+const folderPath = 'storage/datasets';
 
 fs.readdir(folderPath, async (err, files) => {
     if (err) {
@@ -21,12 +21,12 @@ fs.readdir(folderPath, async (err, files) => {
                 const jsonData = JSON.parse(data);
 
                 // Update jsonData with a new key "membership" and set the value to "none"
-                jsonData.membership = "none";
+                // jsonData.membership = "none";
                 
                 // *****remove "/away?url=" from personalLink ******//
-                // if (jsonData.personalLink && jsonData.personalLink !== "") {
-                //     jsonData.personalLink = jsonData.personalLink.replace("/away?url=", "");
-                // } 
+                if (jsonData.personalLink && jsonData.personalLink !== "") {
+                    jsonData.personalLink = jsonData.personalLink.replace("/away?url=", "");
+                } 
 
                 const updatedData = JSON.stringify(jsonData, null, 2);
 

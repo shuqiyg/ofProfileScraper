@@ -29,12 +29,12 @@ async function run() {
                             const valueNumber = parseFloat(valueWithoutK);
                             if (valueNumber >= 25) {
                                 const accountName = jsonData.accountName;
-                                appendFileSync("over25K.txt", accountName + '\n');
+                                appendFileSync("over25K_20240403.txt", accountName + '\n');
                             }
                         }
                         if (valueString.includes("M")) {
                             const accountName = jsonData.accountName;
-                            appendFileSync("over25K.txt", accountName + '\n');                        
+                            appendFileSync("over25K_20240403.txt", accountName + '\n');                        
                             }
                         }
                     }
